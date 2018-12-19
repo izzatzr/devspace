@@ -12,6 +12,7 @@ type RemoveCmd struct {
 	portFlags       *removePortCmdFlags
 	packageFlags    *removePackageCmdFlags
 	deploymentFlags *removeDeploymentCmdFlags
+	imageFlags      *removeImageCmdFlags
 }
 
 type removeSyncCmdFlags struct {
@@ -35,12 +36,17 @@ type removeDeploymentCmdFlags struct {
 	RemoveAll bool
 }
 
+type removeImageCmdFlags struct {
+	RemoveAll bool
+}
+
 func init() {
 	cmd := &RemoveCmd{
 		syncFlags:       &removeSyncCmdFlags{},
 		portFlags:       &removePortCmdFlags{},
 		packageFlags:    &removePackageCmdFlags{},
 		deploymentFlags: &removeDeploymentCmdFlags{},
+		imageFlags:      &removeImageCmdFlags{},
 	}
 
 	removeCmd := &cobra.Command{
@@ -150,6 +156,24 @@ func init() {
 
 	removeDeploymentCmd.Flags().BoolVar(&cmd.deploymentFlags.RemoveAll, "all", false, "Remove all deployments")
 	removeCmd.AddCommand(removeDeploymentCmd)
+
+	removeImageCmd := &cobra.Command{
+		Use:   "image",
+		Short: "Removes one or all images from the devspace",
+		Long: `
+	#######################################################
+	############ devspace remove image ####################
+	#######################################################
+	Removes one or all images from a devspace:
+	devspace remove image default
+	devspace remove image --all
+	#######################################################
+	`,
+		Run: cmd.RunRemoveImage,
+	}
+
+	removeImageCmd.Flags().BoolVar(&cmd.imageFlags.RemoveAll, "all", false, "Remove all images")
+	removeCmd.AddCommand(removeImageCmd)
 }
 
 // RunRemoveDeployment executes the specified deployment
