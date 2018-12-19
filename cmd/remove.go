@@ -188,3 +188,11 @@ func (cmd *RemoveCmd) RunRemovePort(cobraCmd *cobra.Command, args []string) {
 		log.Fatal(err)
 	}
 }
+
+// RunRemoveImage executes the remove image command logic
+func (cmd *RemoveCmd) RunRemoveImage(cobraCmd *cobra.Command, args []string) {
+	err := configure.RemoveImage(cmd.portFlags.RemoveAll, args)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
