@@ -14,6 +14,7 @@ type AddCmd struct {
 	packageFlags    *addPackageFlags
 	deploymentFlags *addDeploymentFlags
 	imageFlags      *addImageFlags
+	serviceFlags    *addServiceFlags
 }
 
 // AddCmdFlags holds the possible flags for the add command
@@ -69,6 +70,7 @@ func init() {
 		packageFlags:    &addPackageFlags{},
 		deploymentFlags: &addDeploymentFlags{},
 		imageFlags:      &addImageFlags{},
+		serviceFlags:    &addServiceFlags{},
 	}
 
 	addCmd := &cobra.Command{
@@ -224,6 +226,29 @@ func init() {
 	addImageCmd.Flags().StringVar(&cmd.imageFlags.BuildEngine, "buildengine", "", "Specify which engine should build the file. Should match this regex: docker|kaniko")
 
 	addCmd.AddCommand(addImageCmd)
+
+	addServiceCmd := &cobra.Command{
+		Use:   "service",
+		Short: "Add a service",
+		Long: ` 
+	#######################################################
+	############# devspace add service ####################
+	#######################################################
+	Add a new service to your devspace
+	
+	Examples:
+	devspace add service my-service --namespace=my-namespace
+	devspace add service my-service --labelSelector=environment=production,tier=frontend
+	#######################################################
+	`,
+		Args: cobra.ExactArgs(1),
+		Run:  cmd.RunAddService,
+	}
+
+	addServiceCmd.Flags().StringVar(&cmd.serviceFlags.Namespace, "namespace", "", "The namespace of the service")
+	addServiceCmd.Flags().StringVar(&cmd.serviceFlags.LabelSelector, "labelSelector", "", "The label selector of the service")
+
+	addCmd.AddCommand(addServiceCmd)
 }
 
 // RunAddPackage executes the add package command logic
@@ -273,4 +298,15 @@ func (cmd *AddCmd) RunAddImage(cobraCmd *cobra.Command, args []string) {
 	}
 
 	log.Donef("Successfully added image %s", args[0])
+}
+
+// RunAddService executes the add image command logic
+func (cmd *AddCmd) RunAddService(cobraCmd *cobra.Command, args []string) {
+
+	err := configure.AddService(args[0], cmd.serviceFlags.LabelSelector, cmd.serviceFlags.Namespace)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Donef("Successfully added new service %v", args[0])
 }

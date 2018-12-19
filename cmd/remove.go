@@ -13,6 +13,7 @@ type RemoveCmd struct {
 	packageFlags    *removePackageCmdFlags
 	deploymentFlags *removeDeploymentCmdFlags
 	imageFlags      *removeImageCmdFlags
+	serviceFlags    *removeServiceCmdFlags
 }
 
 type removeSyncCmdFlags struct {
@@ -40,6 +41,12 @@ type removeImageCmdFlags struct {
 	RemoveAll bool
 }
 
+type removeServiceCmdFlags struct {
+	RemoveAll     bool
+	LabelSelector string
+	Namespace     string
+}
+
 func init() {
 	cmd := &RemoveCmd{
 		syncFlags:       &removeSyncCmdFlags{},
@@ -47,6 +54,7 @@ func init() {
 		packageFlags:    &removePackageCmdFlags{},
 		deploymentFlags: &removeDeploymentCmdFlags{},
 		imageFlags:      &removeImageCmdFlags{},
+		serviceFlags:    &removeServiceCmdFlags{},
 	}
 
 	removeCmd := &cobra.Command{
@@ -120,7 +128,7 @@ func init() {
 	removeCmd.AddCommand(removePortCmd)
 	removePackageCmd := &cobra.Command{
 		Use:   "package",
-		Short: "Removes forwarded ports from a devspace",
+		Short: "Removes one or all packages from a devspace",
 		Long: `
 	#######################################################
 	############## devspace remove package ################
@@ -169,11 +177,38 @@ func init() {
 	devspace remove image --all
 	#######################################################
 	`,
-		Run: cmd.RunRemoveImage,
+		Args: cobra.MaximumNArgs(1),
+		Run:  cmd.RunRemoveImage,
 	}
 
 	removeImageCmd.Flags().BoolVar(&cmd.imageFlags.RemoveAll, "all", false, "Remove all images")
 	removeCmd.AddCommand(removeImageCmd)
+
+	removeServiceCmd := &cobra.Command{
+		Use:   "service",
+		Short: "Removes one or all services from the devspace",
+		Long: `
+	#######################################################
+	############ devspace remove image ####################
+	#######################################################
+	Removes one, multiple or all images from a devspace.
+	If the argument is specified, the service with that name will be deleted.
+	If more than one condition for deletion is specified, all services that match at least one of the conditions will be deleted.
+	
+	Examples:
+	devspace remove service my-service
+	devspace remove service --namespace=my-namespace --labelSelector=environment=production,tier=frontend
+	devspace remove service --all
+	#######################################################
+	`,
+		Args: cobra.MaximumNArgs(1),
+		Run:  cmd.RunRemoveService,
+	}
+
+	removeServiceCmd.Flags().BoolVar(&cmd.serviceFlags.RemoveAll, "all", false, "Remove all services")
+	removeServiceCmd.Flags().StringVar(&cmd.serviceFlags.Namespace, "namespace", "", "Namespace of the service")
+	removeServiceCmd.Flags().StringVar(&cmd.serviceFlags.LabelSelector, "labelselector", "", "Labelselector of the service")
+	removeCmd.AddCommand(removeServiceCmd)
 }
 
 // RunRemoveDeployment executes the specified deployment
@@ -215,7 +250,20 @@ func (cmd *RemoveCmd) RunRemovePort(cobraCmd *cobra.Command, args []string) {
 
 // RunRemoveImage executes the remove image command logic
 func (cmd *RemoveCmd) RunRemoveImage(cobraCmd *cobra.Command, args []string) {
-	err := configure.RemoveImage(cmd.portFlags.RemoveAll, args)
+	err := configure.RemoveImage(cmd.imageFlags.RemoveAll, args)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+// RunRemoveService executes the remove service command logic
+func (cmd *RemoveCmd) RunRemoveService(cobraCmd *cobra.Command, args []string) {
+	var serviceName string
+	if len(args) > 0 {
+		serviceName = args[0]
+	}
+
+	err := configure.RemoveService(cmd.serviceFlags.RemoveAll, serviceName, cmd.serviceFlags.LabelSelector, cmd.serviceFlags.Namespace)
 	if err != nil {
 		log.Fatal(err)
 	}
