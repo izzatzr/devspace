@@ -866,13 +866,14 @@ Run DevSpace on your local machine where you have a browser installed.
 
 #### Solution B 
 Generate an access key and login with the non-interactive login method. Follow these steps:
-   1. Open this page: https://app.devspace.cloud/settings/access-keys (for on-premise version: https://[my-devspace-cloud-url]/settings/access-keys)
-   2. Click on the button "Create Key".
-   3. Enter a name (e.g. my-access-key).
-   4. Click on "Create Access Key".
-   5. Copy the access key displayed within the input field.
-   6. Login via `devspace login --key=[YOUR_ACCESS_KEY]`
-   7. Try the command again that you originally wanted to execute.
+1. Open this page: https://app.devspace.cloud/settings/access-keys  
+  *For on-premise version: https://[my-devspace-cloud-url]/settings/access-keys*
+2. Click on the button "Create Key"
+3. Enter a name (e.g. my-access-key)
+4. Click on "Create Access Key"
+5. Copy the access key displayed within the input field
+6. Login via `devspace login --key=[YOUR_ACCESS_KEY]`
+7. Run the command again that you originally wanted to execute
 
 <img src="docs/website/static/img/readme/line.svg" height="1">
 </details>
